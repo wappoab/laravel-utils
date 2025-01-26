@@ -338,10 +338,14 @@ PHP;
             if ($typeNode instanceof Node\Identifier) {
                 // ex. "string", "int", "bool"
                 return $this->mapPhpBuiltinToPhpType($typeNode->name);
-            } elseif ($typeNode instanceof Node\Name && !empty($imports[$typeNode->toString()])) {
+            }
+
+            if ($typeNode instanceof Node\Name && !empty($imports[$typeNode->toString()])) {
                 // ex. "Carbon" => kolla import => \Carbon\Carbon
                 return '\\'.ltrim($imports[$typeNode->toString()], '\\');
-            } elseif ($typeNode instanceof Node\Name\FullyQualified) {
+            }
+
+            if ($typeNode instanceof Node\Name\FullyQualified) {
                 // ex. \Carbon\Carbon
                 return '\\'.ltrim($typeNode->toString(), '\\');
             }
