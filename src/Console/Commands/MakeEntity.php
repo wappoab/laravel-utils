@@ -18,6 +18,7 @@ class MakeEntity extends Command
         {model : The name of the Eloquent model (e.g. "User")}
         {--N|namespace=Entities : The namespace (under \\App) to place this Entity class}
         {--s|suffix=Entity : The suffix to append to the generated class name}
+        {--resource : Inherit Resource instead of Data}
         {--f|force : Overwrite the file if it already exists}';
 
     protected $description = 'Generate a Spatie Data-based Entity class from an Eloquent model by parsing its code (resolving imported classes, custom casts, etc.).';
@@ -28,6 +29,7 @@ class MakeEntity extends Command
         $namespace = trim($this->option('namespace'), '\\/');
         $suffix = $this->option('suffix');
         $force = $this->option('force');
+        $resource = (bool) $this->option('resource');
 
         // 1) Kolla att app/Models/{Model}.php finns
         $modelPath = base_path("app/Models/{$model}.php");
@@ -75,7 +77,8 @@ class MakeEntity extends Command
             namespace: $fullNamespace,
             className: $className,
             columns: $columns,
-            casts: $casts
+            casts: $casts,
+            resource: $resource
         );
 
         File::put($filePath, $entityContent);
@@ -201,7 +204,8 @@ class MakeEntity extends Command
         string $namespace,
         string $className,
         array $columns,
-        array $casts
+        array $casts,
+        bool $resource
     ): string {
         // 1) Mappar kolumn => PHP-typ
         //    (Du har redan logiken i mapCastToPhpType(...) nedan)
@@ -210,13 +214,15 @@ class MakeEntity extends Command
             $phpTypesPerColumn[$col] = $this->mapCastToPhpType($cast);
         }
 
+        $dataClass = ($resource?'Resource':'Data');
+
         // 2) Samla vilka klasser som behöver importeras
         //    (alla som börjar med "\", ex: \Illuminate\Support\Collection)
         $allPhpTypes = collect($phpTypesPerColumn)->values()->unique();
         $imports = $allPhpTypes
             ->filter(fn($t) => str_starts_with($t, '\\'))
             ->map(fn($t) => 'use '.ltrim($t, '\\').';')
-            ->push('use Spatie\\LaravelData\\Data;')
+            ->push('use Spatie\\LaravelData\\'.$dataClass.';')
             ->sort()
             ->implode("\n");
 
@@ -247,7 +253,7 @@ namespace {$namespace};
 
 {$imports}
 
-class {$className} extends Data
+class {$className} extends {$dataClass}
 {
     public function __construct(
 {$constructorParams}
