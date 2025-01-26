@@ -360,7 +360,6 @@ PHP;
             'boolean' => 'bool',
             'float',
             'double' => 'float',
-            'string' => 'string',
             'array' => 'array',
             default => 'string',
         };
