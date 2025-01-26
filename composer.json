@@ -1,0 +1,23 @@
+{
+    "name": "wappo/laravel-utils",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Wappo\\LaravelUtils\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "nikic/php-parser": "^5.0",
+        "illuminate/support": "^9.0|^10.0|^11.0",
+        "illuminate/console": "^9.0|^10.0|^11.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Wappo\\LaravelUtils\\Providers\\LaravelUtilsServiceProvider"
+            ]
+        }
+    }
+}
