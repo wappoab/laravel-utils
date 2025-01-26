@@ -207,8 +207,6 @@ class MakeEntity extends Command
         array $casts,
         bool $resource
     ): string {
-        // 1) Mappar kolumn => PHP-typ
-        //    (Du har redan logiken i mapCastToPhpType(...) nedan)
         $phpTypesPerColumn = [];
         foreach ($casts as $col => $cast) {
             $phpTypesPerColumn[$col] = $this->mapCastToPhpType($cast);
@@ -216,8 +214,6 @@ class MakeEntity extends Command
 
         $dataClass = ($resource?'Resource':'Data');
 
-        // 2) Samla vilka klasser som behöver importeras
-        //    (alla som börjar med "\", ex: \Illuminate\Support\Collection)
         $allPhpTypes = collect($phpTypesPerColumn)->values()->unique();
         $imports = $allPhpTypes
             ->filter(fn($t) => str_starts_with($t, '\\'))
@@ -226,15 +222,10 @@ class MakeEntity extends Command
             ->sort()
             ->implode("\n");
 
-        // 3) Skapa själva konstruktorn
-        //    - hoppar över "updated_at", "created_at", "deleted_at"
         $constructorParams = collect($columns)
             ->reject(fn($c) => in_array($c, ['updated_at', 'created_at', 'deleted_at']))
             ->map(function ($column) use ($phpTypesPerColumn) {
                 $type = $phpTypesPerColumn[$column] ?? 'string';
-                // Ta bara själva klassen, inte hela \Illuminate\Support\Collection
-                // om du föredrar att aliasa i filen.
-                // (Här kör du last(...) - se nedan)
                 if (str_contains($type, '\\')) {
                     $type = last(explode('\\', $type));
                 }
@@ -253,7 +244,7 @@ namespace {$namespace};
 
 {$imports}
 
-class {$className} extends {$dataClass}
+final class {$className} extends {$dataClass}
 {
     public function __construct(
 {$constructorParams}
